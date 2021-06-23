@@ -2,6 +2,7 @@
 **/.vscode/*
 build/*
 out/*
+.cache
 
 CMakeSettings.json
-.editorconfig
+compile_commands.json

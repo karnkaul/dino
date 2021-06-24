@@ -6,7 +6,7 @@
 #else
 #define DLL_API __declspec(dllimport)
 #endif
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 #define DLL_API
 #else
 #error "Unsupported platform"

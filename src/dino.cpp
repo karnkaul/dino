@@ -13,7 +13,11 @@
 namespace dino {
 #if defined(DINO_LINUX)
 using handle_type = void*;
+#if defined(__APPLE__)
+constexpr lib::meta_t g_meta = {"lib", "dylib"};
+#else
 constexpr lib::meta_t g_meta = {"lib", "so"};
+#endif
 #elif defined(DINO_WINDOWS)
 using handle_type = HMODULE;
 constexpr lib::meta_t g_meta = {{}, "dll"};

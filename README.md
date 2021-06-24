@@ -1,6 +1,6 @@
 # dino
 
-## A simple, multi-platform Dynamic Library Loader
+## A simple, multi-platform Dynamic Library Loader using C++17
 
 [![Build status](https://ci.appveyor.com/api/projects/status/hxfv294rbqqv6qxj?svg=true)](https://ci.appveyor.com/project/karnkaul/dino)
 
@@ -15,7 +15,7 @@ Provides an RAII class `lib`, each instance of which wraps a loaded shared libra
 
 ### Requirements
 
-- Linux or Windows
+- Linux or Windows or MacOSX
 - C++17 compiler (and stdlib)
   - Tested with `g++`, `clang++`, `cl.exe`
 - CMake 3.14+
@@ -24,7 +24,10 @@ Provides an RAII class `lib`, each instance of which wraps a loaded shared libra
 
 1. Copy / clone / submodule [dino](https://github.com/karnkaul/dino) to an appropriate subdirectory in the project
 1. Link to `dino` via `target_link_libraries(foo PRIVATE dino::dino)`
-1. Use `#include <dino/dino.hpp>` for the entire API
+1. Use `#include <dino/dino.hpp>` for the loader API
+1. (Optional) Use `#include <dino/dll_api.hpp>` for ease of symbol import/export for all supported platforms:
+  1. Define `DINO_EXPORT` in the translation units that contain implementations (`#define DINO_EXPORT` in `.cpp` files, or `target_compile_definitions(foo PRIVATE DINO_EXPORT)`)
+  1. Prefix `DLL_API` to function signatures in both the interface and implementation
 
 ### Example
 

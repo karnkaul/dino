@@ -13,6 +13,5 @@ set(COMPILE_OPTS
 
 add_library(dino-interface INTERFACE)
 add_library(dino::interface ALIAS dino-interface)
-target_compile_features(dino-interface INTERFACE cxx_std_17)
 target_compile_definitions(dino-interface INTERFACE $<$<BOOL:${MSVC_RUNTIME}>:WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS>)
 target_compile_options(dino-interface INTERFACE ${COMPILE_OPTS})

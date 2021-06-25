@@ -52,6 +52,8 @@ class lib {
 	///
 	explicit lib(name_t name, std::string_view dir = {});
 
+	lib(lib&& rhs) = default;
+	lib& operator=(lib&&) = default;
 	lib(lib const& rhs) = delete;
 	lib& operator=(lib const&) = delete;
 

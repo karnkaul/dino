@@ -4,7 +4,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)	# Don't let OPTION erase above non-cache v
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(DINO_VERSION "0.1.0.0" CACHE STRING "dino version" FORCE)
+set(DINO_VERSION "0.2.0.0" CACHE STRING "dino version" FORCE)
 project(dino VERSION ${DINO_VERSION})
 
 set(DINO_IS_ROOT OFF)
@@ -13,26 +13,27 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
   message(STATUS "DINO is root B)")
 endif()
 
-# Includes
+# includes
 include(CheckPIESupported)
 check_pie_supported()
 include(cmake/platform.cmake)
 
-# Interface
+# interface
 include(cmake/interface.cmake)
 
-# Header text
+# header text
 set(BUILD_CONFIG ${CMAKE_BUILD_TYPE})
 if(CMAKE_CONFIGURATION_TYPES)
   set(BUILD_CONFIG "Multi-config")
 endif()
 message(STATUS "[${CMAKE_SYSTEM_PROCESSOR}] [${PLATFORM}] [${CMAKE_GENERATOR}] [${CMAKE_CXX_COMPILER_ID}] [${BUILD_CONFIG}]")
 
-# Library
+# dino
 set(SOURCES
   include/dino/handle.hpp
   include/dino/dino.hpp
   include/dino/dll_api.hpp
+  include/dino/dinex_args.hpp
   src/dino.cpp
 )
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCES})
@@ -47,22 +48,39 @@ target_link_libraries(${PROJECT_NAME}
   $<$<STREQUAL:${PLATFORM},Win64>:kernel32>
 )
 
-# Tests
+# extra options
 if(DINO_IS_ROOT)
-  set(DINO_BUILD_TESTS ON CACHE BOOL "Build Dino Tests")
+  option(DINO_BUILD_TESTS "Build Dino Tests" ON)
+  option(DINO_BUILD_DINEX "Build dinex launcher" ON)
   if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     message(STATUS "Exporting compile commands")
   endif()
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/.appveyor.yml.in" "${CMAKE_SOURCE_DIR}/.appveyor.yml")
 else()
-  set(DINO_BUILD_TESTS OFF CACHE BOOL "Build Dino Tests")
+  option(DINO_BUILD_TESTS "Build Dino Tests" OFF)
+  option(DINO_BUILD_DINEX "Build dinex launcher" OFF)
 endif()
+
+# tests
 if(DINO_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
 
-# Compile commands
+# dinex
+if(DINO_BUILD_DINEX)
+  set(DINEX_ENTRYPOINT_NAME "run" CACHE STRING "Default entrypoint name that dinex will search for and run")
+  set(DINEX_SILENT false CACHE BOOL "Set to `true` to suppress logging")
+  set(DINEX_ERROR_CODE 1 CACHE STRING "Error return code (int)")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/dinex_constants.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/dinex_constants.hpp")
+  source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES src/dinex.cpp)
+  add_executable(dinex src/dinex.cpp)
+  target_include_directories(dinex PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+  target_link_libraries(dinex PRIVATE dino::dino dino::interface)
+endif()
+
+# compile commands
 if(DINO_IS_ROOT AND EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
   message(STATUS "Copying compile_commands.json")
   file(COPY "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" DESTINATION "${CMAKE_SOURCE_DIR}")

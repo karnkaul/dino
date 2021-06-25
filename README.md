@@ -4,7 +4,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/hxfv294rbqqv6qxj?svg=true)](https://ci.appveyor.com/project/karnkaul/dino)
 
-Provides an RAII class `lib`, each instance of which wraps a loaded shared library/module.
+`dino`'s central interface is an RAII class `lib`, each instance of which wraps a loaded shared library/module. `dinex` is a simple launcher executable that loads a shared library/module and runs a main-like function on it; set `DINO_BUILD_DINEX=ON` to build.
 
 ### Features
 
@@ -20,16 +20,21 @@ Provides an RAII class `lib`, each instance of which wraps a loaded shared libra
   - Tested with `g++`, `clang++`, `cl.exe`
 - CMake 3.14+
 
-### Usage
+### dino usage
 
 1. Copy / clone / submodule [dino](https://github.com/karnkaul/dino) to an appropriate subdirectory in the project
 1. Link to `dino` via `target_link_libraries(foo PRIVATE dino::dino)`
 1. Use `#include <dino/dino.hpp>` for the loader API
 1. (Optional) Use `#include <dino/dll_api.hpp>` for ease of symbol import/export for all supported platforms:
-  1. Define `DINO_EXPORT` in the translation units that contain implementations (`#define DINO_EXPORT` in `.cpp` files, or `target_compile_definitions(foo PRIVATE DINO_EXPORT)`)
-  1. Prefix `DLL_API` to function signatures in both the interface and implementation
+   1. Define `DINO_EXPORT` in the translation units that contain implementations (`#define DINO_EXPORT` in `.cpp` files, or `target_compile_definitions(foo PRIVATE DINO_EXPORT)`)
+   1. Prefix `DLL_API` to function signatures in both the interface and implementation
 
-### Example
+#### CMake build options
+
+- `DINO_BUILD_TESTS`: Set `ON` to build tests (`OFF` by default unless `dino` is the project root)
+- `DINO_BUILD_DINEX`: Set `ON` to buld `dinex` (`OFF` by default unless `dino` is the project root)
+
+#### Example
 
 ```cpp
 // library header
@@ -68,9 +73,56 @@ if (lib) {
 }
 ```
 
+### dinex usage
+
+`dinex` first attempts to load `<dll_name>` at: `<lib_path>` (empty by default), working directory, and executable directory, in order. It then attempts to call `<entrypoint>` (`run` by default), forwarding `<args>` as a `dino::args` parameter (can be ignored). If unsuccessful or upon `<entrypoint>` throwing an unhanded exception, returns `DINO_ERROR_CODE`, else returns `<entrypoint>`'s return value.
+
+#### CMake build options
+
+- `DINEX_ENTRYPOINT_NAME`: Default entrypoint name that dinex will search for and run (`run`)
+- `DINEX_SILENT`: Set to `true` to suppress logging by default (`false`)
+- `DINEX_ERROR_CODE` Error return code (`1`)
+
+#### Launcher usage
+
+**Syntax**
+
+```
+dinex [-option=value...] <dll_name> [args...]
+```
+
+Options:
+
+- `-s[=true]`: suppress logging (runtime option, defaults to `true`, overrides `DINDEX_SILENT`)
+  - aliases: `-silent`
+- `-d=<lib_path>`: directory where shared library/module is located (empty if not specified)
+  - aliases: `-dir`, `-directory`
+- `-e=<entrypoint>`: entrypoint function to call (`DINEX_ENTRYPOINT_NAME` if not specified)
+  - aliases: `-entry`, `-entrypoint`
+
+#### Library setup
+
+- Define `<entrypoint>` in a translation unit:
+
+```cpp
+#define DINO_EXPORT
+#include <dino/dinex_args.hpp>
+
+DLL_API int run(dino::args) { /* ... */ }
+```
+
+- Verify entrypoint signature:
+
+```cpp
+static_assert(dino::is_entrypoint_v<decltype(run)>, "Invalid entrypoint signature");
+```
+
+- Build as shared library, install in target working directory / adjacent to dinex (executable directory).
+- Run via `/path/to/dinex <dll_name> [args...]`
+
 ### FAQ
 
-#### Are the functions actually type-safe?
+#### Are the loaded functions actually type-safe?
 
 Unfortunately not, `extern "C"` only exports symbol names and thus the only match is via the function name, the typed wrappers are only for calling convenience (they reinterpret cast `void*` function pointers under the hood).
 
@@ -80,7 +132,7 @@ Undefined behaviour.
 
 #### Why is this library not header-only?
 
-So that _the interface_ is lightweight and _you_ can include `dino.hpp` while suffering minimal compile cost, and without polluting your codebase with `Windows.h` (or `dlfcn.h` for that matter).
+So that _the interface_ is lightweight and `dino.hpp` can be included with minimal costs to build-time, and without polluting your codebase with `Windows.h` (or `dlfcn.h` for that matter).
 
 [Original repository](https://github.com/karnkaul/dino)
 

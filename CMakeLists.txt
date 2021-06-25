@@ -4,7 +4,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)	# Don't let OPTION erase above non-cache v
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(DINO_VERSION "0.1.0.0" CACHE STRING "dino version" FORCE)
+set(DINO_VERSION "0.2.0.0" CACHE STRING "dino version" FORCE)
 project(dino VERSION ${DINO_VERSION})
 
 set(DINO_IS_ROOT OFF)
@@ -56,6 +56,7 @@ if(DINO_IS_ROOT)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     message(STATUS "Exporting compile commands")
   endif()
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/.appveyor.yml.in" "${CMAKE_SOURCE_DIR}/.appveyor.yml")
 else()
   option(DINO_BUILD_TESTS "Build Dino Tests" OFF)
   option(DINO_BUILD_DINEX "Build dinex launcher" OFF)

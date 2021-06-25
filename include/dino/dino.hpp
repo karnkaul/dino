@@ -114,10 +114,7 @@ class lib::func_t<Ret(Args...)> {
 	/// \brief Execute wrapped function with passed args
 	/// Precondition: instance must be valid
 	///
-	template <typename... Ar>
-	Ret operator()(Ar&&... args) const {
-		return (*m_ptr)(std::forward<Ar>(args)...);
-	}
+	Ret operator()(Args... args) const { return (*m_ptr)(args...); }
 
   private:
 	type m_ptr{};

@@ -1,0 +1,14 @@
+#pragma once
+#include <string_view>
+
+namespace dinex {
+template <typename T>
+constexpr int safe_error_code(T t) noexcept {
+	int const ret = static_cast<int>(t);
+	return ret > 1 ? ret : 1;
+}
+
+constexpr std::string_view entrypoint_name = "@DINEX_ENTRYPOINT_NAME@";
+constexpr bool silent = @DINEX_SILENT@;
+constexpr int error_code = safe_error_code(@DINEX_ERROR_CODE@);
+} // namespace dinex

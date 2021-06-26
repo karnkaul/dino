@@ -13,7 +13,6 @@ target_link_libraries(dinolib PUBLIC dino::dino dino::interface)
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES dino_test.cpp)
 add_executable(dino-test dino_test.cpp)
 target_link_libraries(dino-test PRIVATE dino::dino dino::interface)
-
 add_test(NAME dino_test
   COMMAND "$<TARGET_FILE:dino-test>" "$<TARGET_FILE_DIR:dinolib>"
 )
@@ -23,7 +22,6 @@ if(DINO_BUILD_DINEX)
   source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES dinex_test.cpp)
   add_library(dinex_test SHARED dinex_test.cpp)
   target_link_libraries(dinex_test PRIVATE dino::dino)
-
   add_test(NAME dinex_test
     COMMAND "$<TARGET_FILE:dinex>" "-dir=$<TARGET_FILE_DIR:dinex_test>" "-entry=run_test" "dinex_test"
   )

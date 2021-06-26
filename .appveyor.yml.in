@@ -8,8 +8,8 @@ environment:
 configuration:
   - Release
 before_build:
-  - cmd: cmake . -B out
-  - sh: cmake -G Ninja . -B out -DCMAKE_BUILD_TYPE=$CONFIGURATION || exit 1
+  - cmd: cmake . -B out -DDINEX_EXE_NAME=launcher || exit 1
+  - sh: cmake -G Ninja . -B out -DCMAKE_BUILD_TYPE=$CONFIGURATION -DDINEX_EXE_NAME=launcher || exit 1
 for:
   - matrix:
       only:

@@ -40,10 +40,8 @@
 // library header
 #include <dino/dll_api.hpp>
 
-extern "C" {
 DLL_API int dino_sum(int a, int b);
 DLL_API void dino_print(char const* str);
-}
 
 // library cpp file
 #define DINO_EXPORT
@@ -51,10 +49,8 @@ DLL_API void dino_print(char const* str);
 #include <iostream>
 #include <lib.hpp>
 
-extern "C" {
 DLL_API int dino_sum(int a, int b) { return a + b; }
 DLL_API void dino_print(char const* str) { std::cout << str << std::endl; }
-}
 
 // user code
 #include <dino/dino.hpp>
@@ -79,6 +75,7 @@ if (lib) {
 
 #### CMake build options
 
+- `DINEX_EXE_NAME`: Name of launcher target (`dinex`)
 - `DINEX_ENTRYPOINT_NAME`: Default entrypoint name that dinex will search for and run (`run`)
 - `DINEX_SILENT`: Set to `true` to suppress logging by default (`false`)
 - `DINEX_ERROR_CODE` Error return code (`1`)
@@ -133,6 +130,10 @@ Undefined behaviour.
 #### Why is this library not header-only?
 
 So that _the interface_ is lightweight and `dino.hpp` can be included with minimal costs to build-time, and without polluting your codebase with `Windows.h` (or `dlfcn.h` for that matter).
+
+### Contributing
+
+Contributions are welcome, please PR to the `dev` branch (`main` only progresses via merges from `dev`).
 
 [Original repository](https://github.com/karnkaul/dino)
 

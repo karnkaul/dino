@@ -70,6 +70,7 @@ endif()
 
 # dinex
 if(DINO_BUILD_DINEX)
+  set(DINEX_EXE_NAME "dinex" CACHE STRING "Name of launcher executable")
   set(DINEX_ENTRYPOINT_NAME "run" CACHE STRING "Default entrypoint name that dinex will search for and run")
   set(DINEX_SILENT false CACHE BOOL "Set to `true` to suppress logging")
   set(DINEX_ERROR_CODE 1 CACHE STRING "Error return code (int)")
@@ -78,6 +79,7 @@ if(DINO_BUILD_DINEX)
   add_executable(dinex src/dinex.cpp)
   target_include_directories(dinex PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
   target_link_libraries(dinex PRIVATE dino::dino dino::interface)
+  set_target_properties(dinex PROPERTIES OUTPUT_NAME ${DINEX_EXE_NAME})
 endif()
 
 # compile commands

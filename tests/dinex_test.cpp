@@ -15,8 +15,6 @@ int run_app(dino::args args) {
 }
 } // namespace
 
-extern "C" {
 DLL_API int run_test(dino::args args) { return run_app(args); }
-}
 
 static_assert(dino::is_entrypoint_v<decltype(run_test)>, "fubar");

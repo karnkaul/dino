@@ -1,4 +1,4 @@
-version: "@DINO_VERSION@-{build}"
+version: "@PROJECT_VERSION@-{build}"
 environment:
   matrix:
     - job_name: Windows x64

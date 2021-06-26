@@ -23,6 +23,14 @@ struct launchee_t {
 struct path_t {
 	std::string_view dir;
 	std::string_view file;
+
+	friend std::ostream& operator<<(std::ostream& out, path_t const& path) { return path.dir.empty() ? out << path.file : out << path.dir << '/' << path.file; }
+
+	std::string to_string() const {
+		std::stringstream str;
+		str << *this;
+		return str.str();
+	}
 };
 
 template <typename... T>
@@ -57,8 +65,10 @@ launchee_t launchee(int argc, char const* argv[]) {
 	int const start = set_options(argc, argv);
 	ret.entrypoint = g_options.entrypoint;
 	if (argc > start) { ret.dll_name = argv[start]; }
-	if (int args = argc - start - 1; args > 0) {
-		ret.args.reserve(std::size_t(args));
+	int const args = argc - start - 1;
+	ret.args.reserve(std::size_t(1 + (args > 0 ? args : 0)));
+	ret.args.push_back({});
+	if (args > 0) {
 		for (int i = 0; i < args; ++i) { ret.args.push_back(argv[std::size_t(i + start + 1)]); }
 	}
 	return ret;
@@ -93,12 +103,6 @@ std::string prettify(sec_t secs) {
 	}
 }
 
-struct dir_t {
-	std::string_view dir;
-
-	friend std::ostream& operator<<(std::ostream& out, dir_t const& dir) { return dir.dir.empty() ? out : out << dir.dir << '/'; }
-};
-
 struct xout {
 	std::ostream& out;
 
@@ -112,9 +116,9 @@ struct xout {
 xout g_cout{std::cout};
 xout g_cerr{std::cerr};
 
-std::pair<dino::lib, dir_t> load(std::string_view str, std::string_view exe_dir) {
-	dir_t dir{g_options.dir};
-	std::string const id(str);
+std::pair<dino::lib, path_t> load(std::string_view lib_name, std::string_view exe_dir) {
+	path_t dir{g_options.dir, lib_name};
+	std::string const id(lib_name);
 	dino::lib lib(id, dir.dir);
 	if (!lib) { lib = dino::lib(id, dir.dir = "."); }
 	if (!lib) { lib = dino::lib(id, dir.dir = exe_dir); }
@@ -129,32 +133,37 @@ int main(int argc, char const* argv[]) {
 		g_cout << "Usage: " << exe_path.file << " [-option=value...] <dll_name> [args...]\n";
 		return 0;
 	}
-	launchee_t const launch = launchee(argc, argv);
+	launchee_t launch = launchee(argc, argv);
 	if (launch.dll_name.empty()) {
 		g_cout << "Usage: " << exe_path.file << " [-option=value...] <dll_name> [args...]\n";
 		return 0;
 	}
-	if (auto const [lib, dir] = load(launch.dll_name, exe_path.dir); lib) {
+	if (auto [lib, lib_path] = load(launch.dll_name, exe_path.dir); lib) {
+		auto const full_name = lib.name().full_name();
+		dino::on_err = [](std::string_view err) { g_cerr << err << '\n'; };
+		lib_path.file = full_name;
+		std::string const full_path = lib_path.to_string();
 		if (auto run = lib.find<dino::main_t>(launch.entrypoint)) {
 			auto const dll_name = lib.name().full_name();
-			g_cout << "Launching [int " << launch.entrypoint << "()] from [" << dir << dll_name << "]\n\n";
+			launch.args[0] = full_path;
+			g_cout << "Launching [int " << launch.entrypoint << "()] from [" << lib_path << "]\n\n";
+			auto const start = std::chrono::steady_clock::now();
 			try {
-				auto const start = std::chrono::steady_clock::now();
 				int const ret = run({static_cast<int>(launch.args.size()), launch.args.data()});
 				auto const dt = prettify(std::chrono::steady_clock::now() - start);
-				g_cout << "\nFinished running [" << dir << dll_name << "] in " << dt << "\n";
+				g_cout << "\nFinished running [" << dll_name << "] in " << dt << "\n";
 				return ret;
 			} catch (std::exception const& e) {
-				g_cerr << "\nError: Unhandled exception in [" << dll_name << "]:\n\t" << e.what() << '\n';
+				g_cerr << "\nError: Unhandled exception in [" << lib_path << "]:\n\t" << e.what() << '\n';
 				return dinex::error_code;
 			}
 		} else {
-			g_cerr << "Error: entrypoint [" << launch.entrypoint << "] not found in dll [" << dir << lib.name().full_name() << "]\n";
+			g_cerr << "Error: entrypoint [" << launch.entrypoint << "] not found in dll [" << lib_path << "]\n";
 		}
 	} else {
 		g_cerr << "Error: dll [" << lib.name().full_name() << "] not found in ";
 		if (!g_options.dir.empty()) { g_cerr << "[" << g_options.dir << "], "; }
-		g_cerr << "working directory or [" << dir << "]\n";
+		g_cerr << "working directory or [" << lib_path.dir << "]\n";
 	}
 	return dinex::error_code;
 }

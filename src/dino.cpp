@@ -50,10 +50,10 @@ void handle_t::check() const {
 		if (char const* err = ::dlerror(); err != nullptr && on_err) { (*on_err)(err); }
 #elif defined(DINO_WINDOWS)
 		LPSTR buf{};
-		auto const flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
-		if (::FormatMessageA(flags, nullptr, ::GetLastError(), 0, buf, 0, nullptr) != 0 && on_err) {
+		static constexpr auto flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+		if (on_err && ::FormatMessageA(flags, nullptr, ::GetLastError(), 0, buf, 0, nullptr) != 0) {
 			(*on_err)(buf);
-			LocalFree(buf);
+			::LocalFree(buf);
 		}
 #endif
 	}

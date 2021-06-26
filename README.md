@@ -32,16 +32,17 @@
 #### CMake build options
 
 - `DINO_BUILD_TESTS`: Set `ON` to build tests (`OFF` by default unless `dino` is the project root)
-- `DINO_BUILD_DINEX`: Set `ON` to buld `dinex` (`OFF` by default unless `dino` is the project root)
+- `DINO_BUILD_DINEX`: Set `ON` to build `dinex` (`OFF` by default unless `dino` is the project root)
 
 #### Example
 
 ```cpp
 // library header
+#include <string_view>
 #include <dino/dll_api.hpp>
 
 DLL_API int dino_sum(int a, int b);
-DLL_API void dino_print(char const* str);
+DLL_API void dino_print(std::string_view str);
 
 // library cpp file
 #define DINO_EXPORT
@@ -50,7 +51,7 @@ DLL_API void dino_print(char const* str);
 #include <lib.hpp>
 
 DLL_API int dino_sum(int a, int b) { return a + b; }
-DLL_API void dino_print(char const* str) { std::cout << str << std::endl; }
+DLL_API void dino_print(std::string_view str) { std::cout << str << std::endl; }
 
 // user code
 #include <dino/dino.hpp>
@@ -63,7 +64,7 @@ if (lib) {
   if (auto dino_sum = lib.find<int(int, int)>("dino_sum")) {
     std::cout << "dino_sum(1, 2): " << dino_sum(1, 2) << '\n';
   }
-  if (auto dino_print = lib.find<void(char const*)>("dino_print")) {
+  if (auto dino_print = lib.find<void(std::string_view)>("dino_print")) {
     dino_print("dino wurx!");
   }
 }

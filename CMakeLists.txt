@@ -4,13 +4,10 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)	# Don't let OPTION erase above non-cache v
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(DINO_VERSION "0.2.0.0" CACHE STRING "dino version" FORCE)
-project(dino VERSION ${DINO_VERSION})
-
-set(DINO_IS_ROOT OFF)
-if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
-  set(DINO_IS_ROOT ON)
-  message(STATUS "DINO is root B)")
+project(dino VERSION "0.2.0.0")
+set(IS_ROOT OFF)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  set(IS_ROOT TRUE)
 endif()
 
 # includes
@@ -27,6 +24,12 @@ if(CMAKE_CONFIGURATION_TYPES)
   set(BUILD_CONFIG "Multi-config")
 endif()
 message(STATUS "[${CMAKE_SYSTEM_PROCESSOR}] [${PLATFORM}] [${CMAKE_GENERATOR}] [${CMAKE_CXX_COMPILER_ID}] [${BUILD_CONFIG}]")
+
+# compile commands
+if(IS_ROOT AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+  message(STATUS "Exporting compile commands")
+endif()
 
 # dino
 set(SOURCES
@@ -49,18 +52,8 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 # extra options
-if(DINO_IS_ROOT)
-  option(DINO_BUILD_TESTS "Build Dino Tests" ON)
-  option(DINO_BUILD_DINEX "Build dinex launcher" ON)
-  if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-    message(STATUS "Exporting compile commands")
-  endif()
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/.appveyor.yml.in" "${CMAKE_SOURCE_DIR}/.appveyor.yml")
-else()
-  option(DINO_BUILD_TESTS "Build Dino Tests" OFF)
-  option(DINO_BUILD_DINEX "Build dinex launcher" OFF)
-endif()
+option(DINO_BUILD_TESTS "Build Dino Tests" ${IS_ROOT})
+option(DINO_BUILD_DINEX "Build dinex launcher" ${IS_ROOT})
 
 # tests
 if(DINO_BUILD_TESTS)
@@ -82,8 +75,12 @@ if(DINO_BUILD_DINEX)
   set_target_properties(dinex PROPERTIES OUTPUT_NAME ${DINEX_EXE_NAME})
 endif()
 
-# compile commands
-if(DINO_IS_ROOT AND EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
-  message(STATUS "Copying compile_commands.json")
-  file(COPY "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" DESTINATION "${CMAKE_SOURCE_DIR}")
+if(IS_ROOT)
+  # appveyor build script
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/.appveyor.yml.in" "${CMAKE_SOURCE_DIR}/.appveyor.yml")
+  # compile_commands.json
+  if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
+    message(STATUS "Copying compile_commands.json")
+    file(COPY "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" DESTINATION "${CMAKE_SOURCE_DIR}")
+  endif()
 endif()

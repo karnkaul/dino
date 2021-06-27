@@ -4,7 +4,10 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)	# Don't let OPTION erase above non-cache v
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-project(dino VERSION "0.2.0.0")
+set(project_name dino)
+set(project_version "0.2.0.0")
+
+project(${project_name} VERSION "${project_version}")
 set(IS_ROOT OFF)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(IS_ROOT TRUE)
@@ -16,7 +19,7 @@ check_pie_supported()
 include(cmake/platform.cmake)
 
 # interface
-include(cmake/interface.cmake)
+add_subdirectory(cmake/interface)
 
 # header text
 set(BUILD_CONFIG ${CMAKE_BUILD_TYPE})
@@ -46,7 +49,7 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${PROJECT_NAME} INTERFACE SYSTEM include)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE dino::interface
+  PRIVATE ${project_name}::interface
   $<$<STREQUAL:${PLATFORM},Linux>:dl>
   $<$<STREQUAL:${PLATFORM},Win64>:kernel32>
 )
@@ -71,7 +74,7 @@ if(DINO_BUILD_DINEX)
   source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES src/dinex.cpp)
   add_executable(dinex src/dinex.cpp)
   target_include_directories(dinex PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-  target_link_libraries(dinex PRIVATE dino::dino dino::interface)
+  target_link_libraries(dinex PRIVATE ${project_name}::${project_name} ${project_name}::interface)
   set_target_properties(dinex PROPERTIES OUTPUT_NAME ${DINEX_EXE_NAME})
 endif()
 

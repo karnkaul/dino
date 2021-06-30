@@ -17,7 +17,7 @@ struct options_t {
 struct launchee_t {
 	std::string_view dll_name;
 	std::string_view entrypoint;
-	std::vector<std::string_view> args;
+	std::vector<dino::args::str_t> args;
 };
 
 struct path_t {
@@ -145,7 +145,7 @@ int main(int argc, char const* argv[]) {
 		std::string const full_path = lib_path.to_string();
 		if (auto run = lib.find<dino::main_t>(launch.entrypoint)) {
 			auto const dll_name = lib.name().full_name();
-			launch.args[0] = full_path;
+			launch.args[0] = full_path.data();
 			g_cout << "Launching [int " << launch.entrypoint << "()] from [" << lib_path << "]\n\n";
 			auto const start = std::chrono::steady_clock::now();
 			try {

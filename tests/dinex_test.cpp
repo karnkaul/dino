@@ -9,7 +9,7 @@ int run_app(dino::args args) {
 	std::cout << "app launched successfully!\n";
 	if (!args.empty()) {
 		std::cout << "args:\n";
-		for (auto arg : args) { std::cout << arg << '\n'; }
+		for (std::string_view arg : args) { std::cout << arg << '\n'; }
 	}
 	return 0;
 }
